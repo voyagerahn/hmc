@@ -1,4 +1,4 @@
-# hmc
+
 
 #include <iostream>
 using namespace std;
