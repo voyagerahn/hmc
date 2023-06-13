@@ -13,3 +13,8 @@
   모든소스코드 Git에 올려야
   
 
+주석:유지보수 안되기 때문에,
+Format: 뉴스기사
+UnitTest: FIRST원칙
+ALU KATA
+Tennis KATA
