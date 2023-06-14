@@ -1,93 +1,96 @@
 #include <string>
 #include <vector>
-#define MAX_LINE_COUNT 5
-#define TRY_COUNT_LIMIT 26
 
 using namespace std;
 
+const int TRY_COUNT_LIMIT = 26;
+const int MAX_LINE_COUNT = 5;
+
+struct Node {
+	int x, y;
+};
+
 class Wheel {
 public:
-	int getTotalPrice(vector<string> answerData, string userdata) {
+	int getTotalPrice(vector<string> strs, string userdata) {
 		int result = 0;
 		int continueCount = 0;
-		int firstChance[MAX_LINE_COUNT] = { 0 };
-		int secondChance[MAX_LINE_COUNT] = { -1, -1, -1, -1, -1 };
+		bool firstChance[MAX_LINE_COUNT] = { false };
+		bool secondChance[MAX_LINE_COUNT] = { false };
 
 		for (int i = 0; i < TRY_COUNT_LIMIT; i++) {
 			char tryChar = userdata[i];
+			vector<Node> axis = getAxisForTargetChar(strs, tryChar);
 
-			if (getPassCount(answerData, tryChar) == 0)
+			int passCnt = axis.size();
+			if (!passCnt)
 			{
 				clearMetadata(continueCount, secondChance);
 				continue;
 			}
 			continueCount++;
 
-			result += get2000Dollar(answerData, tryChar, secondChance);
-			result += get1000Dollar(answerData, tryChar, firstChance, secondChance);
-			result += get100Dollar(continueCount, getPassCount(answerData, tryChar));
+			result += get2000Dollar(axis, secondChance);
+			result += get1000Dollar(axis, firstChance, secondChance);
+			result += get100Dollar(continueCount, passCnt);
 
-			flipCard(answerData, tryChar);
+			flipCard(strs, axis);
 		}
 
 		return result;
 	}
 
 private:
-	int get2000Dollar(vector<string> answerChar, char tryChar, int secondChance[5]) {
-		int result = 0;
+	vector<Node> getAxisForTargetChar(const vector<string>& strs, char tryChar) {
+		vector<Node> result;
 
-		for (int y = 0; y < answerChar.size(); y++) {
-			if (secondChance[y] == -1) continue;
-
-			for (int x = 0; x < answerChar[secondChance[y]].size(); x++) {
-				if (answerChar[secondChance[y]][x] == tryChar) {
-					result += 2000;
-					break;
-				}
+		for (int y = 0; y < strs.size(); y++) {
+			for (int x = 0; x < strs[y].size(); x++) {
+				if (strs[y][x] != tryChar) continue;
+				result.push_back({ x, y });
 			}
-			secondChance[y] = -1;
 		}
 		return result;
 	}
 
-	int get1000Dollar(vector<string> answerChar, char tryChar, int firstChance[5], int secondChance[5]) {
-		int resultPrice = 0;
-		for (int y = 0; y < answerChar.size(); y++) {
-			for (int x = 0; x < answerChar[y].size(); x++) {
-				if (answerChar[y][x] != tryChar) continue;
+	int get2000Dollar(vector<Node> targetAxis, bool secondChance[5]) {
+		int result = 0;
 
-				if (firstChance[y] == 0 && x == 0) {
-					resultPrice += 1000;
-					firstChance[y] = 1;
-					secondChance[y] = y;
-				}
-				else if (firstChance[y] == 0 && x != 0) {
-					firstChance[y] = 1;
-				}
-			}
+		for (Node axis : targetAxis) {
+			int y = axis.y;
+			int x = axis.x;
+			if (secondChance[y] == false) continue;
+			secondChance[y] = false;
+			result += 2000;
 		}
+
+		for (int i = 0; i < 5; i++) {
+			secondChance[i] = false;
+		}
+
+		return result;
+	}
+
+	int get1000Dollar(vector<Node> targetAxis, bool firstChance[], bool secondChance[]) {
+		int resultPrice = 0;
+
+		for (Node axis : targetAxis) {
+			int y = axis.y;
+			int x = axis.x;
+
+			if (firstChance[y] == true) continue;
+			firstChance[y] = true;
+			if (x != 0) continue;
+			resultPrice += 1000;
+			secondChance[y] = true;
+		}
+
 		return resultPrice;
 	}
 
-	int getPassCount(vector<string> answerChar, char tryChar) {
-		int result = 0;
-
-		for (int y = 0; y < answerChar.size(); y++) {
-			for (int x = 0; x < answerChar[y].size(); x++) {
-				if (answerChar[y][x] != tryChar) continue;
-				result++;
-			}
-		}
-		return result;
-	}
-
-	void flipCard(vector<string> answerChar, char tryChar) {
-		for (int y = 0; y < answerChar.size(); y++) {
-			for (int x = 0; x < answerChar[y].size(); x++) {
-				if (answerChar[y][x] != tryChar) continue;
-				answerChar[y][x] = '_';
-			}
+	void flipCard(vector<string> strs, vector<Node> targetAxis) {
+		for (Node axis : targetAxis) {
+			strs[axis.y][axis.x] = '_';
 		}
 	}
 
@@ -95,9 +98,8 @@ private:
 		return (conCnt * 100) * passCnt;
 	}
 
-	void clearMetadata(int& conCnt, int chance[]) {
+	void clearMetadata(int& conCnt, bool secondChance[]) {
 		conCnt = 0;
-		for (int i = 0; i < MAX_LINE_COUNT; i++) chance[i] = -1;
+		memset(secondChance, false, MAX_LINE_COUNT);
 	}
-
 };
