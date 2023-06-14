@@ -1,0 +1,37 @@
+#pragma once
+#include <string>
+
+using std::string;
+
+class Movie
+{
+public:
+	static const int CHILDRENS = 2;
+	static const int NEW_RELEASE = 1;
+	static const int REGULAR = 0;
+
+	Movie(const string& title, int _genre)
+		: title(title),
+		genre(_genre)
+	{
+	}
+
+	int getPriceCode()
+	{
+		return genre;
+	}
+
+	void setPriceCode(int _genre)
+	{
+		genre = _genre;
+	}
+
+	string getTitle()
+	{
+		return title;
+	}
+
+private:
+	string title; 
+	int genre;
+};
